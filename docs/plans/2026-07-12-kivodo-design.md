@@ -95,3 +95,4 @@ entitlements need `com.apple.security.personal-information.reminders`
 - [ ] Works over a full-screen app and on a second Space
 - [ ] Empty Enter: shake, no reminder created
 - [ ] Permission-denied flow shows the settings link
+- [ ] Re-granting permission and retrying without a relaunch saves successfully

@@ -740,6 +740,7 @@ No code — walk the checklist with the app running (`make run`):
 - [ ] Works over a full-screen app and on a second Space
 - [ ] Empty Enter: shake, no reminder created, panel stays open
 - [ ] Deny permission (System Settings → Privacy → Reminders, toggle off), retry: panel shows "Open Settings" row and the button lands on the right pane
+- [ ] Re-grant permission in System Settings, then retry WITHOUT relaunching Kivodo: save succeeds (guards against a stale pre-grant EKEventStore returning no default list; if this fails, create the store lazily in save or call reset() on status change)
 
 Fix anything that fails (small fixes inline; anything structural goes back
 through the plan). Then commit fixes (humanized messages) and update the
