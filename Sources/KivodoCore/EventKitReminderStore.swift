@@ -1,5 +1,7 @@
 import EventKit
 
+/// `@unchecked Sendable` is safe here: EKEventStore is documented as
+/// thread-safe, and the only stored property (`store`) is immutable.
 public final class EventKitReminderStore: ReminderStore, @unchecked Sendable {
     private let store = EKEventStore()
 
