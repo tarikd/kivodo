@@ -5,7 +5,7 @@ let package = Package(
     name: "Kivodo",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0"),
+        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", .upToNextMinor(from: "2.4.0")),
     ],
     targets: [
         .target(name: "KivodoCore"),

@@ -26,7 +26,8 @@ struct KivodoApp: App {
 /// is cached by SwiftUI, and `getShortcut(for:)` alone gives it no
 /// invalidation signal — the menu line would show a stale shortcut after
 /// re-recording. The package posts a notification on every change (internal
-/// API, but its raw name is stable across releases).
+/// API — the dependency is pinned to 2.4.x in Package.swift because of this).
+/// The observer is intentionally app-lifetime; no removal needed.
 @MainActor
 @Observable
 final class ShortcutStatus {

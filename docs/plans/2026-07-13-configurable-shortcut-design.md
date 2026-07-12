@@ -27,7 +27,7 @@ conflict edge cases — not worth it).
 | `Package.swift` | Add KeyboardShortcuts dependency to the **executable target only**; KivodoCore stays dependency-free |
 | `HotKeyManager.swift` | Deleted — the package replaces it |
 | `KivodoApp.swift` | Shortcut name `toggleCapture` (default ⌥ Space); `KeyboardShortcuts.onKeyDown` wiring; `Settings` scene; menu gains "Settings…" (⌘,) and the hotkey line reads the current shortcut dynamically |
-| `SettingsView.swift` | New: one `KeyboardShortcuts.Recorder` row |
+| `SettingsView.swift` | New: `KeyboardShortcuts.Recorder` row, a hint that globally-owned combos can't be recorded, and a "Reset to ⌥ Space" button |
 | Docs | Scope tables updated here and in the v1 design doc |
 
 The settings window must actually come to the front when opened from the
