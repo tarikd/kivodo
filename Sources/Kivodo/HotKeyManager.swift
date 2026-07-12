@@ -1,4 +1,5 @@
 import Carbon.HIToolbox
+import Foundation
 
 @MainActor
 final class HotKeyManager {
@@ -10,12 +11,13 @@ final class HotKeyManager {
     private nonisolated(unsafe) var handlerRef: EventHandlerRef?
 
     func register() {
+        guard hotKeyRef == nil else { return }
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
             eventKind: UInt32(kEventHotKeyPressed)
         )
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
-        InstallEventHandler(
+        let handlerStatus = InstallEventHandler(
             GetApplicationEventTarget(),
             { _, _, userData in
                 guard let userData else { return noErr }
@@ -28,8 +30,11 @@ final class HotKeyManager {
             },
             1, &eventType, selfPtr, &handlerRef
         )
+        if handlerStatus != noErr {
+            NSLog("Kivodo: hotkey handler installation failed (status %d)", handlerStatus)
+        }
         let hotKeyID = EventHotKeyID(signature: 0x4B49564F /* 'KIVO' */, id: 1)
-        RegisterEventHotKey(
+        let hotKeyStatus = RegisterEventHotKey(
             UInt32(kVK_Space),
             UInt32(optionKey),
             hotKeyID,
@@ -37,6 +42,9 @@ final class HotKeyManager {
             0,
             &hotKeyRef
         )
+        if hotKeyStatus != noErr {
+            NSLog("Kivodo: hotkey registration failed (status %d)", hotKeyStatus)
+        }
     }
 
     deinit {

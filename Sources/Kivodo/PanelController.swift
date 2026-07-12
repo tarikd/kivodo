@@ -11,6 +11,8 @@ final class PanelController {
         self.viewModel = viewModel
     }
 
+    // Intentionally calls close() directly (bypassing dismissRequested()'s
+    // saving-guard) so the hotkey always works as a force-close escape hatch.
     func toggle() {
         if let panel, panel.isVisible {
             close()
