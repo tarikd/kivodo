@@ -220,6 +220,7 @@ public final class CaptureViewModel {
     }
 
     public func submit() async {
+        guard phase != .saving else { return }
         let title = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty else {
             shakeCount += 1
