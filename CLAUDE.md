@@ -7,7 +7,7 @@ happens in Reminders.
 
 - **Stack:** native Swift/SwiftUI, zero third-party dependencies
 - **Design doc:** `docs/plans/2026-07-12-kivodo-design.md`
-- **Build:** plain Xcode project — `xcodebuild` or ⌘R
+- **Build:** Swift package — `make app` assembles and signs `build/Kivodo.app`; `make run` relaunches it; `make test` runs the suite
 
 ## ⚠️ CRITICAL: Git Rules (READ THIS FIRST)
 

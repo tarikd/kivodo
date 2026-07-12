@@ -82,8 +82,9 @@ hash changes on every rebuild, so macOS may re-ask for Reminders permission.
 
 ## Testing
 
-- Unit tests for `RemindersService` against a protocol-mocked EventKit:
-  permission granted / denied / save-failure paths.
+- Unit tests for `CaptureViewModel` against a mocked `ReminderStore`:
+  save, empty-input, permission-denied, save-failure, and async-race paths.
+  The thin `EventKitReminderStore` wrapper is verified manually.
 - Panel behavior (non-activation, hotkey, focus return) is verified by hand:
 
 ### Manual test checklist
