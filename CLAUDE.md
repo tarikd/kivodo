@@ -5,7 +5,7 @@ small floating panel appears over everything on screen. Type a todo, hit
 Enter, and it lands in Apple Reminders. Capture-only — viewing and completing
 happens in Reminders.
 
-- **Stack:** native Swift/SwiftUI, zero third-party dependencies
+- **Stack:** native Swift/SwiftUI; single dependency: KeyboardShortcuts (shortcut recorder)
 - **Design doc:** `docs/plans/2026-07-12-kivodo-design.md`
 - **Build:** Swift package — `make app` assembles and signs `build/Kivodo.app`; `make run` relaunches it; `make test` runs the suite
 

@@ -35,11 +35,12 @@ in Apple Reminders (which also syncs them to iPhone/iPad via iCloud).
 |---|---|
 | Storage | Apple Reminders via EventKit (default list) |
 | Input | Plain text only — no date parsing, no list picker |
-| Stack | Native Swift / SwiftUI, zero third-party dependencies |
+| Stack | Native Swift / SwiftUI; one dependency: KeyboardShortcuts (recorder UI — see 2026-07-13 design) |
 | Distribution | Personal use, locally signed, not App Store |
 
 Deliberately deferred (easy to add later): natural-language dates, list
-targeting, configurable hotkey UI, launch-at-login toggle, viewing todos.
+targeting, launch-at-login toggle, viewing todos. (Configurable shortcut
+added 2026-07-13.)
 
 ## Architecture
 
@@ -55,9 +56,10 @@ Five small components:
    - dismisses itself on `resignKey` (click-outside handling for free)
 3. **`CaptureView`** — SwiftUI content hosted in the panel:
    `NSVisualEffectView` blur + one `TextField`.
-4. **`HotKeyManager`** — Carbon `RegisterEventHotKey`. Chosen because it
-   requires no Accessibility/Input Monitoring permissions, unlike global
-   NSEvent monitors.
+4. **Shortcut handling** — the KeyboardShortcuts package (Carbon-based,
+   no Accessibility/Input Monitoring permissions needed) with a recorder
+   field in Settings; default ⌥ Space. (Replaced the hand-rolled Carbon
+   `HotKeyManager` on 2026-07-13.)
 5. **`RemindersService`** — EventKit. Requests Reminders access on first
    save; creates an `EKReminder` in the default list.
 
