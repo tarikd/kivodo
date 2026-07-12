@@ -73,10 +73,12 @@ No database, no network. The only state is the hotkey registration.
 
 ## Build
 
-Plain Xcode project, no external dependencies. Build with `xcodebuild` or
-⌘R. Info.plist needs `LSUIElement` and `NSRemindersFullAccessUsageDescription`;
-entitlements need `com.apple.security.personal-information.reminders`
-(plus App Sandbox). Local (ad-hoc/development) signing.
+Swift package, no external dependencies. `make app` builds a release binary
+and assembles `build/Kivodo.app` (see Makefile). Info.plist needs `LSUIElement`
+and `NSRemindersFullAccessUsageDescription`. The app is unsandboxed and needs
+no entitlements — outside the sandbox, TCC only requires the app bundle plus
+the usage description. Local ad-hoc signing (`codesign --sign -`); the code
+hash changes on every rebuild, so macOS may re-ask for Reminders permission.
 
 ## Testing
 

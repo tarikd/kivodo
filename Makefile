@@ -15,6 +15,7 @@ app:
 	codesign --force --sign - $(APP)
 
 run: app
+	-pkill -x Kivodo
 	open $(APP)
 
 test:
