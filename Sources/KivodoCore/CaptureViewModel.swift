@@ -32,16 +32,25 @@ public final class CaptureViewModel {
             return
         }
         phase = .saving
+        // If the panel is re-presented while the save is in flight (reset()
+        // bumps presentationCount), the result belongs to a stale session and
+        // must not touch the new one's phase or text.
+        let presentation = presentationCount
         do {
             try await store.save(title: title)
+            guard presentationCount == presentation else { return }
             phase = .saved
             text = ""
-        } catch ReminderError.accessDenied {
-            phase = .needsPermission
-        } catch ReminderError.noDefaultList {
-            phase = .failed("No default Reminders list is configured.")
         } catch {
-            phase = .failed(error.localizedDescription)
+            guard presentationCount == presentation else { return }
+            switch error {
+            case ReminderError.accessDenied:
+                phase = .needsPermission
+            case ReminderError.noDefaultList:
+                phase = .failed("No default Reminders list is configured.")
+            default:
+                phase = .failed(error.localizedDescription)
+            }
         }
     }
 

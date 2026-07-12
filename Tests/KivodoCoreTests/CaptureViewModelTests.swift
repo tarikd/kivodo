@@ -20,12 +20,14 @@ final class MockReminderStore: ReminderStore, @unchecked Sendable {
 @MainActor
 final class SuspendingReminderStore: ReminderStore, @unchecked Sendable {
     var savedTitles: [String] = []
+    var errorToThrow: Error?
     private var continuations: [CheckedContinuation<Void, Never>] = []
 
     nonisolated init() {}
 
     func save(title: String) async throws {
         await withCheckedContinuation { continuations.append($0) }
+        if let errorToThrow { throw errorToThrow }
         savedTitles.append(title)
     }
 
@@ -121,5 +123,43 @@ struct CaptureViewModelTests {
 
         #expect(store.savedTitles == ["Buy milk"])
         #expect(vm.phase == .saved)
+    }
+
+    @Test func staleSaveDoesNotClobberNewPresentation() async {
+        let store = SuspendingReminderStore()
+        let vm = CaptureViewModel(store: store)
+        vm.text = "Old todo"
+
+        let submit = Task { await vm.submit() }
+        while vm.phase != .saving { await Task.yield() }
+
+        // Save wedges (first-run TCC dialog); user reopens the panel and types.
+        vm.reset()
+        vm.text = "New todo"
+
+        store.resumeAll()
+        await submit.value
+
+        #expect(vm.text == "New todo")
+        #expect(vm.phase == .idle)
+    }
+
+    @Test func staleSaveErrorDoesNotClobberNewPresentation() async {
+        let store = SuspendingReminderStore()
+        store.errorToThrow = ReminderError.accessDenied
+        let vm = CaptureViewModel(store: store)
+        vm.text = "Old todo"
+
+        let submit = Task { await vm.submit() }
+        while vm.phase != .saving { await Task.yield() }
+
+        vm.reset()
+        vm.text = "New todo"
+
+        store.resumeAll()
+        await submit.value
+
+        #expect(vm.text == "New todo")
+        #expect(vm.phase == .idle)
     }
 }
