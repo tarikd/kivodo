@@ -3,6 +3,8 @@ import AppKit
 /// A Spotlight-style panel: floats over everything, receives keystrokes
 /// without activating the app (so the frontmost app keeps visual focus).
 final class FloatingPanel: NSPanel {
+    /// May fire more than once per dismissal (Escape → orderOut → resignKey
+    /// chain), so handlers must be idempotent.
     var onDismiss: (() -> Void)?
 
     init(contentRect: NSRect) {
@@ -12,6 +14,9 @@ final class FloatingPanel: NSPanel {
             backing: .buffered,
             defer: false
         )
+        // NSPanel releases itself on close() by default, which would
+        // over-release this ARC-owned window.
+        isReleasedWhenClosed = false
         isFloatingPanel = true
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]

@@ -68,8 +68,13 @@ struct CaptureView: View {
         Task {
             await viewModel.submit()
             if viewModel.phase == .saved {
+                // If the panel is re-presented during the confirmation delay,
+                // this stale task must not dismiss the fresh presentation.
+                let presentation = viewModel.presentationCount
                 try? await Task.sleep(for: .milliseconds(350))
-                onDismiss()
+                if viewModel.presentationCount == presentation {
+                    onDismiss()
+                }
             }
         }
     }

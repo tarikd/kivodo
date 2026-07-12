@@ -96,3 +96,4 @@ entitlements need `com.apple.security.personal-information.reminders`
 - [ ] Empty Enter: shake, no reminder created
 - [ ] Permission-denied flow shows the settings link
 - [ ] Re-granting permission and retrying without a relaunch saves successfully
+- [ ] First-run permission dialog: panel stays visible behind the system prompt during the save (dismissal is suppressed while saving); after granting, confirmation shows and reminder is created
