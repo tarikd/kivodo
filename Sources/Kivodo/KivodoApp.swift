@@ -9,7 +9,10 @@ struct KivodoApp: App {
 
     var body: some Scene {
         MenuBarExtra("Kivodo", systemImage: "checkmark.circle") {
-            Text("Capture: \(shortcutStatus.current?.description ?? "not set")")
+            // The hotkey is registered globally by KeyboardShortcuts, not a
+            // menu key equivalent, so this row is a label + trailing shortcut
+            // display rather than an actionable Button.
+            LabeledContent("Capture", value: shortcutStatus.current?.description ?? "not set")
             Divider()
             SettingsMenuItem()
             Button("Quit Kivodo") { NSApp.terminate(nil) }

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#3a4a66"></stop>
+      <stop offset="0.55" stop-color="#232b3d"></stop>
+      <stop offset="1" stop-color="#151a26"></stop>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="90"></feGaussianBlur></filter>
+  </defs>
+
+  <!-- Full-bleed background: fills the whole canvas so macOS rounds it into
+       its own icon container. No self-drawn squircle, no transparent corners
+       (those produced a grey frame on macOS 26). -->
+  <rect width="1024" height="1024" fill="url(#bg)"></rect>
+  <circle cx="180" cy="140" r="360" fill="#5a6ec8" opacity="0.6" filter="url(#blur)"></circle>
+  <circle cx="880" cy="900" r="320" fill="#8a5aa0" opacity="0.55" filter="url(#blur)"></circle>
+
+  <!-- Inner glass tile -->
+  <g transform="translate(512 512)">
+    <rect x="-247" y="-247" width="494" height="494" rx="104" fill="#ffffff" fill-opacity="0.14" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6"></rect>
+  </g>
+
+  <!-- checkmark.circle mark -->
+  <g transform="translate(512 512) scale(1.55) translate(-88 -88)" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="88" cy="88" r="70" stroke-width="13"></circle>
+    <path d="M55 90l22 22 46-52" stroke-width="15"></path>
+  </g>
+</svg>

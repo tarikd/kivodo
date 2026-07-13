@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="squircle"><path d="M512 0C160 0 0 160 0 512s160 512 512 512 512-160 512-512S864 0 512 0Z"></path></clipPath>
+    <linearGradient id="bg" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#2b2b30"></stop>
+      <stop offset="1" stop-color="#191919"></stop>
+    </linearGradient>
+    <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f5f7"></stop>
+      <stop offset="1" stop-color="#cfd2d8"></stop>
+    </linearGradient>
+    <radialGradient id="sheen" cx="0.5" cy="0" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"></stop>
+      <stop offset="0.7" stop-color="#ffffff" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <rect width="1024" height="1024" fill="url(#bg)"></rect>
+    <rect width="1024" height="420" fill="url(#sheen)"></rect>
+    <rect x="4" y="4" width="1016" height="1016" rx="230" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="8"></rect>
+
+    <g transform="translate(512 470)">
+      <rect x="-256" y="-232" width="512" height="548" rx="98" fill="#9aa0ab"></rect>
+      <rect x="-256" y="-232" width="512" height="464" rx="98" fill="url(#cap)"></rect>
+
+      <g transform="scale(1.85) translate(-88 -88)" fill="none" stroke="#0a84ff" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="88" cy="88" r="70" stroke-width="14"></circle>
+        <path d="M55 90l22 22 46-52" stroke-width="16"></path>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -5,6 +5,32 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-13
+
+### Added
+
+- A keyboard-hint footer under the capture field, showing the Save, Cancel,
+  and List keys.
+- An app icon: a frosted-glass panel that looks like the capture window
+  itself, generated from an SVG master with `make icon`.
+
+### Changed
+
+- Redesigned the capture panel: a taller container, a hairline divider above
+  the new hint footer, an outline checkmark status glyph, and a rounded
+  destination chip with a Tab hint for switching lists.
+- The saved confirmation reads "Added to {list}" and collapses the panel back
+  to one row.
+- Rebuilt Settings in the grouped macOS System Settings style, with the
+  shortcut and destination controls in inset cards.
+- The menu bar Capture item now puts its shortcut on the trailing edge instead
+  of packing everything into one line.
+- The needs-permission panel got a two-line message and a filled accent Open
+  Settings button.
+- The capture panel now stays open when you switch Spaces or apps. It closes
+  only on Escape, a click outside, the shortcut again, or a save. Before, any
+  focus change (including a Space swipe) closed it.
+
 ## [0.1.0] - 2026-07-13
 
 ### Added
@@ -23,4 +49,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Makefile packaging: `make app` assembles and signs a relocatable
   Kivodo.app, `make run` relaunches it, `make test` runs the suite.
 
+[0.2.0]: https://github.com/tarikd/kivodo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/tarikd/kivodo/releases/tag/v0.1.0
