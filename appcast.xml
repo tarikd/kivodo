@@ -3,26 +3,23 @@
     <channel>
         <title>Kivodo</title>
         <item>
-            <title>0.3.0</title>
-            <pubDate>Mon, 13 Jul 2026 22:15:48 +0000</pubDate>
+            <title>0.3.1</title>
+            <pubDate>Mon, 13 Jul 2026 23:03:14 +0000</pubDate>
             <link>https://github.com/tarikd/kivodo</link>
-            <sparkle:version>5</sparkle:version>
-            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:version>7</sparkle:version>
+            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
             <description sparkle:format="markdown"><![CDATA[
-### Added
+### Fixed
 
-- Automatic updates through Sparkle. Kivodo checks in the background, and a
-  "Check for Updates…" menu bar item runs a check on demand.
-- A GitHub Actions release pipeline: pull requests get a build check; a push to
-  main builds, signs with a Developer ID cert, notarizes, publishes a release,
-  and updates the Sparkle appcast that installed copies read.
-- `scripts/build_app.sh` as one build path for local dev and CI. The
-  `KIVODO_MAS` flag drops Sparkle for a future App Store build.
+- Opening Settings crashed the app. The release build used the wrong Swift
+  build engine, which baked an absolute build-directory path into a
+  dependency's resource lookup, so the shortcut recorder couldn't find its
+  resources once the app was installed. The build now uses the engine that
+  keeps those resources reachable inside the app bundle.
 
 ]]></description>
-            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.3.0-55fee2c/Kivodo-0.3.0-55fee2c.zip" length="2325434" type="application/octet-stream" sparkle:edSignature="EVppcwBaBuDRKyymJXLFaDnoTRphgP/YC+ozhf5n7eUTNh3FU8AgghLgAVslsS9i90XZQLucUZSoqU8vs//sCA=="/>
+            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.3.1-aaeaeed/Kivodo-0.3.1-aaeaeed.zip" length="2616156" type="application/octet-stream" sparkle:edSignature="LV8AG4BSUw2Cg8gCO/lN3Y2c52Bx4Hy1sinWsn67VxR18DE5SgX1UV6zqOHf7VTG1LgGGFpLRd08xKdzwoRCBw=="/>
         </item>
     </channel>
 </rss>
