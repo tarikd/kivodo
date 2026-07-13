@@ -28,26 +28,14 @@ export COPYFILE_DISABLE=1
 
 cd "$ROOT_DIR"
 
-# The Swift Build engine is required: the generated Bundle.module accessor
-# looks for package resource bundles in Contents/Resources, so the .app stays
-# self-contained and relocatable. The default (native) engine bakes in an
-# absolute .build path instead, which breaks once the app is separated from
-# this repo. The flag value differs by toolchain — older Swift calls it
-# "swiftbuild", newer ones "next" — so pick whichever this swift accepts.
-BUILD_SYSTEM="next"
-if ! swift build --build-system "$BUILD_SYSTEM" --help >/dev/null 2>&1; then
-  BUILD_SYSTEM="swiftbuild"
-fi
-swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM"
-BIN="$(swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM" --show-bin-path)"
-
-echo "DBG build-system=$BUILD_SYSTEM show-bin-path=$BIN" >&2
-echo "DBG all Kivodo executables anywhere under .build:" >&2
-find .build -name "$APP_NAME" -type f -perm +111 2>/dev/null | sed 's/^/  /' >&2 || true
-echo "DBG .build top-level layout:" >&2
-ls -la .build 2>/dev/null | sed 's/^/  /' >&2 || true
-echo "DBG anything named Kivodo (any type) under .build/out and arm64 dirs:" >&2
-find .build -maxdepth 6 -name "$APP_NAME*" 2>/dev/null | sed 's/^/  /' >&2 || true
+# Build with the default (native) engine. Kivodo declares no package resources
+# and uses no Bundle.module, so the resource-relocatability concern that would
+# call for the Swift Build engine doesn't apply here; the native engine's
+# output is self-contained. Using it also keeps the build portable across
+# toolchains (the Swift Build engine's flag name and output layout differ
+# between Swift versions).
+swift build -c "$CONFIGURATION"
+BIN="$(swift build -c "$CONFIGURATION" --show-bin-path)"
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
@@ -55,9 +43,12 @@ mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 cp "$BIN/$APP_NAME" "$MACOS_DIR/$APP_NAME"
 chmod +x "$MACOS_DIR/$APP_NAME"
 
-# Package resource bundles (may be none).
+# Package resource bundles (e.g. KeyboardShortcuts localizations). May be none.
+# The build dir copies arrive read-only, which later blocks `xattr -cr` and
+# re-signing, so make the copied tree writable.
 if ls "$BIN"/*.bundle >/dev/null 2>&1; then
   cp -R "$BIN"/*.bundle "$RESOURCES_DIR/"
+  chmod -R u+w "$RESOURCES_DIR"
 fi
 
 cp "$ROOT_DIR/Support/Info.plist" "$CONTENTS_DIR/Info.plist"
