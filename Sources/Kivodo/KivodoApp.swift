@@ -13,6 +13,11 @@ struct KivodoApp: App {
             // menu key equivalent, so this row is a label + trailing shortcut
             // display rather than an actionable Button.
             LabeledContent("Capture", value: shortcutStatus.current?.description ?? "not set")
+            #if !MAS_BUILD
+            Button("Check for Updates…") {
+                AppUpdater.shared.checkForUpdates()
+            }
+            #endif
             Divider()
             SettingsMenuItem()
             Button("Quit Kivodo") { NSApp.terminate(nil) }
@@ -89,5 +94,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController = controller
         // KeyboardShortcuts invokes key-down handlers on the main thread.
         KeyboardShortcuts.onKeyDown(for: .toggleCapture) { controller.toggle() }
+
+        #if !MAS_BUILD
+        _ = AppUpdater.shared
+        #endif
     }
 }
