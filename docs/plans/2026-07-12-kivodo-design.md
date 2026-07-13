@@ -38,9 +38,9 @@ in Apple Reminders (which also syncs them to iPhone/iPad via iCloud).
 | Stack | Native Swift / SwiftUI; one dependency: KeyboardShortcuts (recorder UI — see 2026-07-13 design) |
 | Distribution | Personal use, locally signed, not App Store |
 
-Deliberately deferred (easy to add later): natural-language dates, list
-targeting, launch-at-login toggle, viewing todos. (Configurable shortcut
-added 2026-07-13.)
+Deliberately deferred (easy to add later): natural-language dates,
+launch-at-login toggle, viewing todos. (Configurable shortcut and the
+two-list destination toggle added 2026-07-13.)
 
 ## Architecture
 
