@@ -28,13 +28,18 @@ export COPYFILE_DISABLE=1
 
 cd "$ROOT_DIR"
 
-# The Swift Build engine (--build-system swiftbuild) is required: the generated
-# Bundle.module accessor looks for package resource bundles in
-# Contents/Resources, so the .app stays self-contained and relocatable. The
-# default (native) engine bakes in an absolute .build path instead, which
-# breaks once the app is separated from this repo.
-swift build -c "$CONFIGURATION" --build-system swiftbuild
-BIN="$(swift build -c "$CONFIGURATION" --build-system swiftbuild --show-bin-path)"
+# The Swift Build engine is required: the generated Bundle.module accessor
+# looks for package resource bundles in Contents/Resources, so the .app stays
+# self-contained and relocatable. The default (native) engine bakes in an
+# absolute .build path instead, which breaks once the app is separated from
+# this repo. The flag value differs by toolchain — older Swift calls it
+# "swiftbuild", newer ones "next" — so pick whichever this swift accepts.
+BUILD_SYSTEM="next"
+if ! swift build --build-system "$BUILD_SYSTEM" --help >/dev/null 2>&1; then
+  BUILD_SYSTEM="swiftbuild"
+fi
+swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM"
+BIN="$(swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM" --show-bin-path)"
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
