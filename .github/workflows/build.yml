@@ -1,0 +1,245 @@
+name: Build and Release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'appcast.xml'
+
+permissions:
+  contents: write
+
+env:
+  SPARKLE_VERSION: "2.9.4"
+
+jobs:
+  build:
+    name: Build Kivodo
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Build Swift package
+        run: swift build
+
+      - name: Import Developer ID certificate
+        id: signing
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEVELOPER_ID_CERTIFICATE_BASE64" ] || [ -z "$DEVELOPER_ID_CERTIFICATE_PASSWORD" ]; then
+            echo "Developer ID certificate secrets are required for release signing." >&2
+            exit 1
+          fi
+          certificate_path="$RUNNER_TEMP/developer-id.p12"
+          keychain_path="$RUNNER_TEMP/kivodo-signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          printf '%s' "$DEVELOPER_ID_CERTIFICATE_BASE64" | base64 -D > "$certificate_path"
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" -P "$DEVELOPER_ID_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain_path"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain_path"
+          # shellcheck disable=SC2046 # intentional word-split: append existing keychains to the search list
+          security list-keychains -d user -s "$keychain_path" $(security list-keychains -d user | tr -d '"')
+          identity="$(security find-identity -v -p codesigning "$keychain_path" | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -n 1)"
+          if [ -z "$identity" ]; then
+            echo "No Developer ID Application identity found." >&2
+            exit 1
+          fi
+          echo "codesign_identity=$identity" >> "$GITHUB_OUTPUT"
+
+      - name: Derive version from CHANGELOG
+        id: version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          marketing_version="$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')"
+          if [ -z "$marketing_version" ]; then
+            echo "Could not parse a version heading from CHANGELOG.md" >&2
+            exit 1
+          fi
+          echo "marketing_version=$marketing_version" >> "$GITHUB_OUTPUT"
+          echo "bundle_version=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build app bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          KIVODO_MARKETING_VERSION: ${{ steps.version.outputs.marketing_version }}
+          KIVODO_BUNDLE_VERSION: ${{ steps.version.outputs.bundle_version }}
+          KIVODO_CODESIGN_IDENTITY: ${{ steps.signing.outputs.codesign_identity }}
+        run: ./scripts/build_app.sh
+
+      - name: Verify app bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          plutil -lint build/Kivodo.app/Contents/Info.plist
+          codesign -dv build/Kivodo.app
+          codesign --verify --verbose=2 build/Kivodo.app
+
+      - name: Archive app bundle
+        id: archive
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          short_sha="${GITHUB_SHA::7}"
+          marketing_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' build/Kivodo.app/Contents/Info.plist)"
+          bundle_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' build/Kivodo.app/Contents/Info.plist)"
+          zip_name="Kivodo-${marketing_version}-${short_sha}.zip"
+          zip_path="dist/${zip_name}"
+          xattr -cr build/Kivodo.app
+          ditto -c -k --norsrc --noextattr --noqtn --noacl --keepParent build/Kivodo.app "${zip_path}"
+          shasum -a 256 "${zip_path}" > "${zip_path}.sha256"
+          {
+            echo "short_sha=${short_sha}"
+            echo "marketing_version=${marketing_version}"
+            echo "bundle_version=${bundle_version}"
+            echo "zip_name=${zip_name}"
+            echo "zip_path=${zip_path}"
+            echo "checksum_path=${zip_path}.sha256"
+            echo "tag_name=v${marketing_version}-${short_sha}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Notarize and staple app bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ZIP_PATH: ${{ steps.archive.outputs.zip_path }}
+          CHECKSUM_PATH: ${{ steps.archive.outputs.checksum_path }}
+        run: |
+          set -euo pipefail
+          if [ -z "$APPLE_API_KEY_BASE64" ] || [ -z "$APPLE_API_KEY_ID" ] || [ -z "$APPLE_API_ISSUER_ID" ] || [ -z "$APPLE_TEAM_ID" ]; then
+            echo "Apple notarization secrets are required." >&2
+            exit 1
+          fi
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          printf '%s' "$APPLE_API_KEY_BASE64" | base64 -D > "$api_key_path"
+          submission_result="$RUNNER_TEMP/notary.json"
+          xcrun notarytool submit "$ZIP_PATH" --key "$api_key_path" --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER_ID" --team-id "$APPLE_TEAM_ID" --wait --timeout 30m \
+            --output-format json > "$submission_result"
+          cat "$submission_result"
+          submission_status="$(plutil -extract status raw -o - "$submission_result")"
+          if [ "$submission_status" != "Accepted" ]; then
+            submission_id="$(plutil -extract id raw -o - "$submission_result")"
+            xcrun notarytool log "$submission_id" --key "$api_key_path" --key-id "$APPLE_API_KEY_ID" \
+              --issuer "$APPLE_API_ISSUER_ID" --team-id "$APPLE_TEAM_ID"
+            exit 1
+          fi
+          xcrun stapler staple build/Kivodo.app
+          xcrun stapler validate build/Kivodo.app
+          codesign --verify --deep --strict --verbose=2 build/Kivodo.app
+          spctl --assess --type execute --verbose build/Kivodo.app
+          xattr -cr build/Kivodo.app
+          ditto -c -k --norsrc --noextattr --noqtn --noacl --keepParent build/Kivodo.app "$ZIP_PATH"
+          shasum -a 256 "$ZIP_PATH" > "$CHECKSUM_PATH"
+
+      - name: Download Sparkle tools
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/sparkle-tools/extracted
+          gh release download "$SPARKLE_VERSION" --repo sparkle-project/Sparkle \
+            --pattern "Sparkle-${SPARKLE_VERSION}.tar.xz" --dir dist/sparkle-tools
+          tar -xf "dist/sparkle-tools/Sparkle-${SPARKLE_VERSION}.tar.xz" -C dist/sparkle-tools/extracted
+
+      - name: Generate Sparkle appcast
+        id: appcast
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          TAG_NAME: ${{ steps.archive.outputs.tag_name }}
+          ZIP_NAME: ${{ steps.archive.outputs.zip_name }}
+          ZIP_PATH: ${{ steps.archive.outputs.zip_path }}
+          MARKETING_VERSION: ${{ steps.archive.outputs.marketing_version }}
+          BUNDLE_VERSION: ${{ steps.archive.outputs.bundle_version }}
+          SHORT_SHA: ${{ steps.archive.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+            echo "SPARKLE_PRIVATE_KEY secret is required." >&2
+            exit 1
+          fi
+          mkdir -p dist/sparkle
+          cp "$ZIP_PATH" "dist/sparkle/$ZIP_NAME"
+          # Release notes from the CHANGELOG section for this version.
+          notes_path="dist/sparkle/${ZIP_NAME%.zip}.md"
+          awk -v v="$MARKETING_VERSION" '
+            $0 ~ "^## \\[" v "\\]" {p=1; next}
+            p && /^## \[/ {exit}
+            p {print}
+          ' CHANGELOG.md > "$notes_path" || true
+          if [ ! -s "$notes_path" ]; then
+            echo "Kivodo ${MARKETING_VERSION} (build ${BUNDLE_VERSION}, ${SHORT_SHA})." > "$notes_path"
+          fi
+          cp "$notes_path" dist/release-notes.md
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | \
+            dist/sparkle-tools/extracted/bin/generate_appcast \
+              --ed-key-file - \
+              --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}/" \
+              --link "https://github.com/${GITHUB_REPOSITORY}" \
+              --embed-release-notes \
+              --maximum-versions 1 \
+              dist/sparkle
+          echo "appcast_path=dist/sparkle/appcast.xml" >> "$GITHUB_OUTPUT"
+          echo "release_notes_path=dist/release-notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7.0.1
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          name: Kivodo-macOS
+          path: |
+            ${{ steps.archive.outputs.zip_path }}
+            ${{ steps.archive.outputs.checksum_path }}
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.archive.outputs.tag_name }}
+          ZIP_PATH: ${{ steps.archive.outputs.zip_path }}
+          CHECKSUM_PATH: ${{ steps.archive.outputs.checksum_path }}
+          APPCAST_PATH: ${{ steps.appcast.outputs.appcast_path }}
+          RELEASE_NOTES_PATH: ${{ steps.appcast.outputs.release_notes_path }}
+          MARKETING_VERSION: ${{ steps.archive.outputs.marketing_version }}
+        run: |
+          gh release create "$TAG_NAME" "$ZIP_PATH" "$CHECKSUM_PATH" "$APPCAST_PATH" \
+            --target "$GITHUB_SHA" --title "Kivodo ${MARKETING_VERSION}" --notes-file "$RELEASE_NOTES_PATH"
+
+      - name: Commit appcast to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          MARKETING_VERSION: ${{ steps.archive.outputs.marketing_version }}
+          SHORT_SHA: ${{ steps.archive.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          cp "${{ steps.appcast.outputs.appcast_path }}" appcast.xml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          if git diff --cached --quiet; then
+            echo "appcast.xml already up to date."
+          else
+            git commit -m "Update appcast for ${MARKETING_VERSION} (${SHORT_SHA})"
+            git push origin HEAD:main
+          fi
