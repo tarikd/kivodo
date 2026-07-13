@@ -79,8 +79,17 @@ if [ "$MAS_BUILD" != "1" ] && [ -n "$SPARKLE_FRAMEWORK" ]; then
   # makes dyld crash at launch ("Library not loaded: @rpath/Sparkle.framework").
   # Let set -e catch the tool failing, then assert the entry actually landed.
   install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/$APP_NAME"
-  otool -l "$MACOS_DIR/$APP_NAME" | grep -q '@executable_path/../Frameworks' \
-    || { echo "error: @executable_path/../Frameworks rpath missing after install_name_tool" >&2; exit 1; }
+  # Assert the rpath actually landed — shipping without it makes dyld crash at
+  # launch ("Library not loaded: @rpath/Sparkle.framework"). Capture otool's
+  # output first, then match the string: piping otool straight into `grep -q`
+  # lets grep close the pipe on its first match, and under `set -o pipefail`
+  # otool's resulting SIGPIPE intermittently fails the whole check even though
+  # the rpath is present (only reproduces under the I/O load of a real build).
+  rpaths="$(otool -l "$MACOS_DIR/$APP_NAME")"
+  case "$rpaths" in
+    *@executable_path/../Frameworks*) ;;
+    *) echo "error: @executable_path/../Frameworks rpath missing after install_name_tool" >&2; exit 1 ;;
+  esac
 fi
 
 xattr -cr "$APP_DIR"
