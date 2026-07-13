@@ -28,14 +28,33 @@ export COPYFILE_DISABLE=1
 
 cd "$ROOT_DIR"
 
-# Build with the default (native) engine. Kivodo declares no package resources
-# and uses no Bundle.module, so the resource-relocatability concern that would
-# call for the Swift Build engine doesn't apply here; the native engine's
-# output is self-contained. Using it also keeps the build portable across
-# toolchains (the Swift Build engine's flag name and output layout differ
-# between Swift versions).
-swift build -c "$CONFIGURATION"
-BIN="$(swift build -c "$CONFIGURATION" --show-bin-path)"
+# The Swift Build engine is required (not the default "native" one). A
+# dependency (KeyboardShortcuts) uses Bundle.module: the native engine bakes an
+# absolute .build path into that accessor, so once the .app is relocated the
+# bundle can't be found and the app traps the moment the recorder loads (i.e.
+# opening Settings). The Swift Build engine emits a relative bundle name that
+# resolves from Contents/Resources, keeping the .app self-contained.
+#
+# The engine's flag value differs by toolchain — older Swift calls it
+# "swiftbuild", newer ones "next" — so pick whichever this swift accepts, and
+# use the same value for --show-bin-path so the reported path matches the build.
+BUILD_SYSTEM="swiftbuild"
+if ! swift build --build-system "$BUILD_SYSTEM" --help >/dev/null 2>&1; then
+  BUILD_SYSTEM="next"
+fi
+swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM"
+BIN="$(swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM" --show-bin-path)"
+
+# Sanity: the built product must exist where --show-bin-path says. If the engine
+# reports a path that doesn't hold the binary (seen when an engine name is
+# accepted but maps to a different output root), fail loudly instead of copying
+# a missing file.
+if [ ! -f "$BIN/$APP_NAME" ]; then
+  echo "error: build engine '$BUILD_SYSTEM' reported bin-path '$BIN' but $APP_NAME is not there" >&2
+  echo "       products found under .build:" >&2
+  find .build -name "$APP_NAME" -type f -perm +111 2>/dev/null | sed 's/^/         /' >&2
+  exit 1
+fi
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"

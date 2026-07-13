@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-07-14
+
+### Fixed
+
+- Opening Settings crashed the app. The release build used the wrong Swift
+  build engine, which baked an absolute build-directory path into a
+  dependency's resource lookup, so the shortcut recorder couldn't find its
+  resources once the app was installed. The build now uses the engine that
+  keeps those resources reachable inside the app bundle.
+
 ## [0.3.0] - 2026-07-13
 
 ### Added
@@ -61,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Makefile packaging: `make app` assembles and signs a relocatable
   Kivodo.app, `make run` relaunches it, `make test` runs the suite.
 
+[0.3.1]: https://github.com/tarikd/kivodo/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/tarikd/kivodo/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/tarikd/kivodo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/tarikd/kivodo/releases/tag/v0.1.0
