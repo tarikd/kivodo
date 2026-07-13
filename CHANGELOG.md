@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-13
+
+### Added
+
+- Automatic updates through Sparkle. Kivodo checks in the background, and a
+  "Check for Updates…" menu bar item runs a check on demand.
+- A GitHub Actions release pipeline: pull requests get a build check; a push to
+  main builds, signs with a Developer ID cert, notarizes, publishes a release,
+  and updates the Sparkle appcast that installed copies read.
+- `scripts/build_app.sh` as one build path for local dev and CI. The
+  `KIVODO_MAS` flag drops Sparkle for a future App Store build.
+
 ## [0.2.0] - 2026-07-13
 
 ### Added
@@ -49,5 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Makefile packaging: `make app` assembles and signs a relocatable
   Kivodo.app, `make run` relaunches it, `make test` runs the suite.
 
+[0.3.0]: https://github.com/tarikd/kivodo/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/tarikd/kivodo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/tarikd/kivodo/releases/tag/v0.1.0
