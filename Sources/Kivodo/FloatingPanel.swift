@@ -46,7 +46,9 @@ final class FloatingPanel: NSPanel {
             guard let self,
                   event.window === self,
                   event.keyCode == 48, // Tab
-                  event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty
+                  // Ignore latched Caps Lock; it must not disqualify a plain Tab.
+                  event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+                      .subtracting(.capsLock).isEmpty
             else { return event }
             self.onTab?()
             return nil

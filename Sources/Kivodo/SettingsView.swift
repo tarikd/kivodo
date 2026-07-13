@@ -3,16 +3,12 @@ import KeyboardShortcuts
 import KivodoCore
 
 struct SettingsView: View {
-    let store: EventKitReminderStore
+    let store: any ReminderStore
 
     @AppStorage(DestinationConfig.keys.id1) private var list1ID = ""
     @AppStorage(DestinationConfig.keys.id2) private var list2ID = ""
     @State private var lists: [ReminderList] = []
     @State private var loadFailed = false
-
-    init(store: EventKitReminderStore) {
-        self.store = store
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -65,7 +61,15 @@ struct SettingsView: View {
         .padding(20)
         .frame(width: 380)
         .task {
-            do { lists = try await store.availableLists() } catch { loadFailed = true }
+            do {
+                lists = try await store.availableLists()
+                // A rename keeps the id, so onChange never re-fires for it;
+                // refresh the cached titles on every Settings open instead.
+                cacheTitle(for: list1ID, key: DestinationConfig.keys.title1)
+                cacheTitle(for: list2ID, key: DestinationConfig.keys.title2)
+            } catch {
+                loadFailed = true
+            }
         }
         .onChange(of: list1ID) { _, newValue in
             cacheTitle(for: newValue, key: DestinationConfig.keys.title1)

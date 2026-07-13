@@ -30,9 +30,10 @@ public final class EventKitReminderStore: ReminderStore, @unchecked Sendable {
 
     public func availableLists() async throws -> [ReminderList] {
         try await ensureAccess()
-        return store.calendars(for: .reminder).map {
-            ReminderList(id: $0.calendarIdentifier, title: $0.title)
-        }
+        // Offer only lists save() will accept.
+        return store.calendars(for: .reminder)
+            .filter { $0.allowsContentModifications }
+            .map { ReminderList(id: $0.calendarIdentifier, title: $0.title) }
     }
 
     private func ensureAccess() async throws {

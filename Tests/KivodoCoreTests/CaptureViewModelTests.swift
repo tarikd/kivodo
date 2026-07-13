@@ -246,6 +246,21 @@ struct CaptureViewModelTests {
         #expect(vm.text == "Buy milk")
     }
 
+    @Test func clearingDestinationsFallsBackToDefaultList() async {
+        let store = MockReminderStore()
+        let vm = CaptureViewModel(store: store)
+        vm.updateDestinations([work, home])
+        vm.toggleDestination()
+
+        // User cleared the pair in Settings; PanelController pushes [] on show.
+        vm.updateDestinations([])
+        #expect(vm.selectedDestination == nil)
+
+        vm.text = "Buy milk"
+        await vm.submit()
+        #expect(store.savedListIDs == [nil])
+    }
+
     @Test func resetKeepsDestinationsAndSelection() {
         let vm = CaptureViewModel(store: MockReminderStore())
         vm.updateDestinations([work, home])
