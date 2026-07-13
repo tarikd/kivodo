@@ -25,5 +25,11 @@
     <true/>
     <key>NSRemindersFullAccessUsageDescription</key>
     <string>Kivodo saves your todos to Apple Reminders.</string>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/tarikd/kivodo/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>yq9w5XtmZ6oANi7gSa8f0htUg0vxyhmIcv9pgeTo1YE=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
 </dict>
 </plist>
