@@ -74,7 +74,13 @@ if [ "$MAS_BUILD" != "1" ] && [ -n "$SPARKLE_FRAMEWORK" ]; then
   mkdir -p "$FRAMEWORKS_DIR"
   rm -rf "$FRAMEWORKS_DIR/Sparkle.framework"
   ditto "$SPARKLE_FRAMEWORK" "$FRAMEWORKS_DIR/Sparkle.framework"
-  install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/$APP_NAME" 2>/dev/null || true
+  # The app bundle is rebuilt from scratch every run, so the rpath is never
+  # already present; a failure here is real, and shipping without this rpath
+  # makes dyld crash at launch ("Library not loaded: @rpath/Sparkle.framework").
+  # Let set -e catch the tool failing, then assert the entry actually landed.
+  install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/$APP_NAME"
+  otool -l "$MACOS_DIR/$APP_NAME" | grep -q '@executable_path/../Frameworks' \
+    || { echo "error: @executable_path/../Frameworks rpath missing after install_name_tool" >&2; exit 1; }
 fi
 
 xattr -cr "$APP_DIR"
@@ -105,10 +111,12 @@ if [ -d "$FRAMEWORKS_DIR/Sparkle.framework" ]; then
   fi
 
   # (a) Nested helpers deepest-first: XPC services and Updater.app, then the
-  # Autoupdate command-line binary.
+  # Autoupdate command-line binary. Use find -L because $VER_DIR may be the
+  # Versions/Current symlink, and BSD find won't descend into a symlink start
+  # path unless it dereferences it (without -L this loop signs nothing).
   while IFS= read -r -d '' helper; do
     sign_one "$helper"
-  done < <(find "$VER_DIR" \( -name '*.xpc' -o -name '*.app' \) -print0 2>/dev/null | sort -rz)
+  done < <(find -L "$VER_DIR" \( -name '*.xpc' -o -name '*.app' \) -print0 2>/dev/null | sort -rz)
   if [ -f "$VER_DIR/Autoupdate" ]; then
     sign_one "$VER_DIR/Autoupdate"
   fi
