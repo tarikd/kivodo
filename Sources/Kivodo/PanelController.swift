@@ -23,6 +23,9 @@ final class PanelController {
 
     func show() {
         let panel = ensurePanel()
+        // Re-read the configured pair on every show so Settings edits apply
+        // on the next open.
+        viewModel.updateDestinations(DestinationConfig.load())
         viewModel.reset()
         position(panel)
         panel.makeKeyAndOrderFront(nil)
@@ -44,6 +47,7 @@ final class PanelController {
         if let panel { return panel }
         let panel = FloatingPanel(contentRect: NSRect(x: 0, y: 0, width: 560, height: 64))
         panel.onDismiss = { [weak self] in self?.dismissRequested() }
+        panel.onTab = { [weak self] in self?.viewModel.toggleDestination() }
         let view = CaptureView(viewModel: viewModel) { [weak self] in self?.dismissRequested() }
         panel.contentView = NSHostingView(rootView: view)
         self.panel = panel

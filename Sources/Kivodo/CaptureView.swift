@@ -38,6 +38,16 @@ struct CaptureView: View {
                 .font(.system(size: 22, weight: .regular))
                 .focused($focused)
                 .onSubmit { submit() }
+            if let destination = viewModel.selectedDestination {
+                Text(destination.title)
+                    .font(.caption.weight(.medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color.accentColor.opacity(0.18)))
+                    .contentShape(Capsule())
+                    .onTapGesture { viewModel.toggleDestination() }
+                    .help("Tab or click to switch list")
+            }
             if case .failed(let message) = viewModel.phase {
                 Text(message)
                     .font(.caption)

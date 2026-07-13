@@ -17,7 +17,7 @@ struct KivodoApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(store: appDelegate.reminderStore)
         }
     }
 }
@@ -74,11 +74,14 @@ private struct SettingsMenuItem: View {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// Shared with the Settings scene so its pickers reuse the same
+    /// EventKit connection (and permission state) as the capture panel.
+    let reminderStore = EventKitReminderStore()
     private var panelController: PanelController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let controller = PanelController(
-            viewModel: CaptureViewModel(store: EventKitReminderStore())
+            viewModel: CaptureViewModel(store: reminderStore)
         )
         panelController = controller
         // KeyboardShortcuts invokes key-down handlers on the main thread.

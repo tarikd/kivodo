@@ -6,6 +6,12 @@ final class FloatingPanel: NSPanel {
     /// May fire more than once per dismissal (Escape → orderOut → resignKey
     /// chain), so handlers must be idempotent.
     var onDismiss: (() -> Void)?
+    /// Plain Tab pressed while the panel is key (destination toggle). Handled
+    /// with a local NSEvent monitor because the field editor consumes Tab
+    /// before SwiftUI's onKeyPress ever sees it.
+    var onTab: (() -> Void)?
+
+    private var tabMonitor: Any?
 
     init(contentRect: NSRect) {
         super.init(
@@ -31,6 +37,22 @@ final class FloatingPanel: NSPanel {
     // Borderless windows refuse key status by default; the text field needs it.
     override var canBecomeKey: Bool { true }
 
+    // The Tab monitor lives only while the panel is key, so background
+    // Tab presses in other apps are untouched.
+    override func becomeKey() {
+        super.becomeKey()
+        guard tabMonitor == nil else { return }
+        tabMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self,
+                  event.window === self,
+                  event.keyCode == 48, // Tab
+                  event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty
+            else { return event }
+            self.onTab?()
+            return nil
+        }
+    }
+
     // Escape.
     override func cancelOperation(_ sender: Any?) {
         onDismiss?()
@@ -39,6 +61,10 @@ final class FloatingPanel: NSPanel {
     // Click outside / anything else takes key status away.
     override func resignKey() {
         super.resignKey()
+        if let tabMonitor {
+            NSEvent.removeMonitor(tabMonitor)
+            self.tabMonitor = nil
+        }
         onDismiss?()
     }
 }
