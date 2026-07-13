@@ -5,6 +5,10 @@ shortcut from any app and a floating box appears over whatever is on screen —
 type a todo, hit Enter, and it lands in Reminders. The panel disappears and
 focus returns to what you were doing.
 
+![The Kivodo capture panel, empty and ready for a reminder](Assets/screenshots/capture-idle.png)
+
+![The Kivodo capture panel with a reminder typed in, headed for the Work list](Assets/screenshots/capture-typing.png)
+
 It borrows the interaction from the ChatGPT desktop app's quick-entry box: a
 frosted panel that floats above everything without stealing focus from the app
 you're in.
