@@ -41,11 +41,13 @@ fi
 swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM"
 BIN="$(swift build -c "$CONFIGURATION" --build-system "$BUILD_SYSTEM" --show-bin-path)"
 
-echo "DBG build-system=$BUILD_SYSTEM" >&2
-echo "DBG show-bin-path=$BIN" >&2
-echo "DBG exists($BIN/$APP_NAME)? $([ -f "$BIN/$APP_NAME" ] && echo yes || echo NO)" >&2
-echo "DBG actual Kivodo binaries under .build:" >&2
-find .build -maxdepth 4 -name "$APP_NAME" -type f 2>/dev/null | sed 's/^/  /' >&2 || true
+echo "DBG build-system=$BUILD_SYSTEM show-bin-path=$BIN" >&2
+echo "DBG all Kivodo executables anywhere under .build:" >&2
+find .build -name "$APP_NAME" -type f -perm +111 2>/dev/null | sed 's/^/  /' >&2 || true
+echo "DBG .build top-level layout:" >&2
+ls -la .build 2>/dev/null | sed 's/^/  /' >&2 || true
+echo "DBG anything named Kivodo (any type) under .build/out and arm64 dirs:" >&2
+find .build -maxdepth 6 -name "$APP_NAME*" 2>/dev/null | sed 's/^/  /' >&2 || true
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
