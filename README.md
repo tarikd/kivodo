@@ -1,4 +1,4 @@
-# Kivodo
+# [Kivodo](https://kivodo.dieo.uk)
 
 A macOS menu bar app for capturing todos into Apple Reminders. Press a global
 shortcut from any app and a floating box appears over whatever is on screen —
