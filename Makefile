@@ -2,7 +2,7 @@ APP = build/Kivodo.app
 ICON = Assets/icon/Kivodo.icns
 ICON_MASTER = Assets/icon/masters/kivodo-2b-frosted-panel.svg
 
-.PHONY: app run test clean icon
+.PHONY: app dmg run test clean icon
 
 # Regenerate the app icon (.icns) from the frosted master. Committed to the
 # repo, so this only needs re-running when the master changes; needs an SVG
@@ -16,6 +16,12 @@ icon: $(ICON)
 # lives in scripts/build_app.sh so local dev and CI share one build path.
 app: $(ICON)
 	CONFIGURATION=release scripts/build_app.sh
+
+# Package build/Kivodo.app into a drag-to-Applications disk image. Local runs
+# produce a signed-only image; CI (with Apple creds) also notarizes + staples
+# it. Output is build/Kivodo.dmg. Shared build path lives in scripts/make_dmg.sh.
+dmg: app
+	scripts/make_dmg.sh
 
 run: app
 	-pkill -x Kivodo

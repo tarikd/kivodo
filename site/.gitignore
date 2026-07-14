@@ -1,0 +1,3 @@
+# Wrangler's local cache (holds account id + build state). Not for the repo.
+.wrangler/
+node_modules/

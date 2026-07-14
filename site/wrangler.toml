@@ -1,0 +1,12 @@
+name = "kivodo-site"
+compatibility_date = "2026-07-14"
+
+# Kivodo's landing page, served straight from ./public as Worker static
+# assets. There's no Worker script; Cloudflare serves the files directly.
+[assets]
+directory = "./public"
+not_found_handling = "single-page-application"
+
+[[routes]]
+pattern = "kivodo.dieo.uk"
+custom_domain = true
