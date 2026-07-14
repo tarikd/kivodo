@@ -25,7 +25,7 @@ struct KivodoApp: App {
         }
 
         Settings {
-            SettingsView(store: appDelegate.reminderStore)
+            SettingsView(store: appDelegate.reminderStore, loginItem: appDelegate.loginItem)
         }
     }
 }
@@ -85,9 +85,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Shared with the Settings scene so its pickers reuse the same
     /// EventKit connection (and permission state) as the capture panel.
     let reminderStore = EventKitReminderStore()
+    /// Shared with the Settings scene so its toggle reflects the same
+    /// login-item state we register on first launch.
+    let loginItem = LoginItem()
     private var panelController: PanelController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        loginItem.registerOnFirstLaunch()
+
         let controller = PanelController(
             viewModel: CaptureViewModel(store: reminderStore)
         )

@@ -4,6 +4,7 @@ import KivodoCore
 
 struct SettingsView: View {
     let store: any ReminderStore
+    let loginItem: LoginItem
 
     @AppStorage(DestinationConfig.keys.id1) private var list1ID = ""
     @AppStorage(DestinationConfig.keys.id2) private var list2ID = ""
@@ -14,6 +15,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 22) {
             shortcutSection
             destinationsSection
+            startupSection
         }
         .padding(.vertical, 22)
         .padding(.horizontal, 24)
@@ -88,6 +90,38 @@ struct SettingsView: View {
                 listPickerRow("List 1", selection: $list1ID)
                 RowDivider()
                 listPickerRow("List 2", selection: $list2ID)
+            }
+        }
+    }
+
+    // MARK: - Startup
+
+    private var startupSection: some View {
+        SettingsSection(
+            header: "Startup",
+            caption: loginItem.requiresApproval
+                ? "Login items are turned off in System Settings, so Kivodo can't start at login until you allow it there."
+                : nil
+        ) {
+            SettingsRow {
+                Text("Launch at login")
+                Spacer(minLength: 12)
+                Toggle("Launch at login", isOn: Binding(
+                    get: { loginItem.isEnabled },
+                    set: { loginItem.isEnabled = $0 }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            if loginItem.requiresApproval {
+                RowDivider()
+                SettingsRow {
+                    Spacer()
+                    Button("Open Settings") {
+                        let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension")!
+                        NSWorkspace.shared.open(url)
+                    }
+                }
             }
         }
     }
