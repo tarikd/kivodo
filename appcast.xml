@@ -3,19 +3,21 @@
     <channel>
         <title>Kivodo</title>
         <item>
-            <title>0.5.1</title>
-            <pubDate>Tue, 14 Jul 2026 17:23:18 +0000</pubDate>
+            <title>0.5.3</title>
+            <pubDate>Tue, 14 Jul 2026 17:37:46 +0000</pubDate>
             <link>https://github.com/tarikd/kivodo</link>
-            <sparkle:version>12</sparkle:version>
-            <sparkle:shortVersionString>0.5.1</sparkle:shortVersionString>
+            <sparkle:version>14</sparkle:version>
+            <sparkle:shortVersionString>0.5.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description sparkle:format="markdown"><![CDATA[
-### Added
+### Fixed
 
-- The landing page now has a favicon, taken from the app icon.
+- Switching Spaces with the capture panel open left it visible but
+  unresponsive. You had to click it before you could type or press Escape. The
+  panel now takes keyboard focus back on every Space switch.
 
 ]]></description>
-            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.5.1-6d34cb5/Kivodo-0.5.1-6d34cb5.zip" length="2627943" type="application/octet-stream" sparkle:edSignature="xSRF1MhNfTJ2GHHSHUE1yfk1u54xn4TTWyEFM8lJdIXJ0i7eA223XNpVcwt3wIvk01Mybc64RLypEhH4GBVhAA=="/>
+            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.5.3-af6a475/Kivodo-0.5.3-af6a475.zip" length="2633218" type="application/octet-stream" sparkle:edSignature="j4a0bhy8puFXLnslgaM8AkQIiVqV6Gy6mW496obvlmVcxWItLqkg4ehahBtyyJ4HNQcK8FYCWfP6VFuuZ0g5DA=="/>
         </item>
     </channel>
 </rss>
