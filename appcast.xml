@@ -3,21 +3,23 @@
     <channel>
         <title>Kivodo</title>
         <item>
-            <title>0.4.0</title>
-            <pubDate>Tue, 14 Jul 2026 14:18:01 +0000</pubDate>
+            <title>0.5.0</title>
+            <pubDate>Tue, 14 Jul 2026 17:11:23 +0000</pubDate>
             <link>https://github.com/tarikd/kivodo</link>
-            <sparkle:version>9</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description sparkle:format="markdown"><![CDATA[
 ### Added
 
-- A "Launch at login" setting, in a new Startup section in Settings. Kivodo
-  registers itself as a login item so it starts when you log in. New installs
-  start with it on; turn it off from Settings.
+- Releases now include a signed and notarized `Kivodo.dmg` next to the zip, so
+  you can drag the app to Applications the usual way. Its download link stays
+  the same across versions.
+- A landing page at kivodo.dieo.uk. The download buttons there always grab the
+  newest DMG.
 
 ]]></description>
-            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.4.0-68e19e0/Kivodo-0.4.0-68e19e0.zip" length="2627904" type="application/octet-stream" sparkle:edSignature="UiINJ0W5jUMhtAFP3ukdD+gYzpJBDEeH89WR1J3Wj7W+kVsKK1MRVAMZ5cQapoUkDL9HL+RTNM2lgGNMLUEPCQ=="/>
+            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.5.0-3d904a0/Kivodo-0.5.0-3d904a0.zip" length="2627957" type="application/octet-stream" sparkle:edSignature="DJe6Jz9H/w/ZJ2P8sHJGy/wojNmZqS737WDClSePtkcRxQaxhY0HB7B0xYL4q4mhTCundEN7FKms8aD3FYFSCw=="/>
         </item>
     </channel>
 </rss>
