@@ -3,23 +3,19 @@
     <channel>
         <title>Kivodo</title>
         <item>
-            <title>0.3.1</title>
-            <pubDate>Mon, 13 Jul 2026 23:03:14 +0000</pubDate>
+            <title>0.3.2</title>
+            <pubDate>Tue, 14 Jul 2026 08:17:52 +0000</pubDate>
             <link>https://github.com/tarikd/kivodo</link>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>0.3.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description sparkle:format="markdown"><![CDATA[
-### Fixed
+### Added
 
-- Opening Settings crashed the app. The release build used the wrong Swift
-  build engine, which baked an absolute build-directory path into a
-  dependency's resource lookup, so the shortcut recorder couldn't find its
-  resources once the app was installed. The build now uses the engine that
-  keeps those resources reachable inside the app bundle.
+- Screenshots of the capture panel in the README.
 
 ]]></description>
-            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.3.1-aaeaeed/Kivodo-0.3.1-aaeaeed.zip" length="2616156" type="application/octet-stream" sparkle:edSignature="LV8AG4BSUw2Cg8gCO/lN3Y2c52Bx4Hy1sinWsn67VxR18DE5SgX1UV6zqOHf7VTG1LgGGFpLRd08xKdzwoRCBw=="/>
+            <enclosure url="https://github.com/tarikd/kivodo/releases/download/v0.3.2-ab1859d/Kivodo-0.3.2-ab1859d.zip" length="2616185" type="application/octet-stream" sparkle:edSignature="a+wm75B0v3bOR8S1vfzniJMMY4Rorgw8GCiqBVHI5WPRKZ/GLEF7QofrYB6c6UV9Qov1LiBvbNSkE79VvIPHCQ=="/>
         </item>
     </channel>
 </rss>
