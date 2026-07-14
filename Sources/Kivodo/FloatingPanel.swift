@@ -9,6 +9,9 @@ final class FloatingPanel: NSPanel {
     /// with a local NSEvent monitor because the field editor consumes Tab
     /// before SwiftUI's onKeyPress ever sees it.
     var onTab: (() -> Void)?
+    /// Fires after a Space swipe has re-keyed the still-visible panel, so the
+    /// controller can re-assert first-responder focus in the SwiftUI field.
+    var onSpaceChange: (() -> Void)?
 
     private var tabMonitor: Any?
     /// Fires on mouse-down anywhere outside the panel — the "click outside"
@@ -16,6 +19,13 @@ final class FloatingPanel: NSPanel {
     /// apps, which also drop key status, leaves the panel up; with
     /// .canJoinAllSpaces it follows the user to the new Space.
     private var clickOutMonitor: Any?
+    /// Set for a brief window around a Space change. The OS resigns the
+    /// panel's key status and posts activeSpaceDidChangeNotification in a
+    /// non-deterministic order — sometimes resignKey fires *after* the
+    /// notification, so re-keying only at notification time loses the race on
+    /// every other swipe. This flag lets resignKey re-key too, but only when a
+    /// Space change is what caused it (not a click-outside or app-switch).
+    private var spaceChangeInFlight = false
 
     init(contentRect: NSRect) {
         super.init(
@@ -36,6 +46,46 @@ final class FloatingPanel: NSPanel {
         isMovableByWindowBackground = true
         hidesOnDeactivate = false
         animationBehavior = .utilityWindow
+
+        // A Space swipe drops key status but leaves the panel visible (it
+        // follows via .canJoinAllSpaces). Re-key it so the field keeps
+        // receiving keystrokes and Escape keeps working without a click. The
+        // panel is created once and lives for the app's lifetime, so the
+        // observer is never removed (matching ShortcutStatus in KivodoApp).
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.handleSpaceChange() }
+        }
+    }
+
+    /// A Space change resigns the panel's key status but leaves it visible (it
+    /// follows via .canJoinAllSpaces). The OS's resignKey and this notification
+    /// arrive in a non-deterministic order, so re-key from both:
+    ///   - here, in case the panel was already resigned (resign came first);
+    ///   - in resignKey, guarded by the flag, for when resign comes later.
+    /// The flag is what tells resignKey a Space change (not a click-outside)
+    /// caused it. Cleared after a short window so a later unrelated resignKey
+    /// doesn't wrongly re-key.
+    private func handleSpaceChange() {
+        guard isVisible else { return }
+        spaceChangeInFlight = true
+        reacquireKey()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.spaceChangeInFlight = false
+        }
+    }
+
+    /// Restore key status if the panel is still up (never resurrect a dismissed
+    /// panel). makeKey — not makeKeyAndOrderFront or NSApp.activate — keeps
+    /// this a non-activating panel, so the frontmost app keeps its visual
+    /// focus. onSpaceChange re-asserts the SwiftUI field's first responder.
+    private func reacquireKey() {
+        guard isVisible, !isKeyWindow else { return }
+        makeKey()
+        onSpaceChange?()
     }
 
     // Borderless windows refuse key status by default; the text field needs it.
@@ -73,6 +123,12 @@ final class FloatingPanel: NSPanel {
             NSEvent.removeMonitor(tabMonitor)
             self.tabMonitor = nil
         }
+        // A Space swipe often resigns key *after* activeSpaceDidChange fired,
+        // so the notification's re-key ran too early. Re-key here instead, once
+        // the resignation has settled. Only when a Space change caused it —
+        // click-outside and app-switch also resign, and those must not re-key.
+        guard spaceChangeInFlight else { return }
+        DispatchQueue.main.async { [weak self] in self?.reacquireKey() }
     }
 
     // The click-outside monitor tracks visibility, not key status: a Space

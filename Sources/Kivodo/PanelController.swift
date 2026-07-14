@@ -50,6 +50,7 @@ final class PanelController {
         let panel = FloatingPanel(contentRect: NSRect(x: 0, y: 0, width: 560, height: 104))
         panel.onDismiss = { [weak self] in self?.dismissRequested() }
         panel.onTab = { [weak self] in self?.viewModel.toggleDestination() }
+        panel.onSpaceChange = { [weak self] in self?.viewModel.requestFocus() }
         let view = CaptureView(viewModel: viewModel) { [weak self] in self?.dismissRequested() }
         let hosting = SizingHostingView(rootView: view)
         // The panel height varies per state (104pt idle/typing/error, 66pt

@@ -108,6 +108,29 @@ struct CaptureViewModelTests {
         #expect(vm.presentationCount == 1)
     }
 
+    @Test func requestFocusBumpsFocusSignalWithoutClearingText() {
+        let store = MockReminderStore()
+        let vm = CaptureViewModel(store: store)
+        vm.text = "Half-typed todo"
+        let before = vm.focusRequestCount
+
+        vm.requestFocus()
+
+        // A Space swipe re-focuses the field but must not discard what the
+        // user already typed or change the phase.
+        #expect(vm.focusRequestCount == before + 1)
+        #expect(vm.text == "Half-typed todo")
+        #expect(vm.phase == .idle)
+    }
+
+    @Test func resetAlsoBumpsFocusSignal() {
+        let store = MockReminderStore()
+        let vm = CaptureViewModel(store: store)
+        let before = vm.focusRequestCount
+        vm.reset()
+        #expect(vm.focusRequestCount == before + 1)
+    }
+
     @Test func genericErrorReportsLocalizedDescription() async {
         let store = MockReminderStore()
         let error = NSError(

@@ -39,7 +39,7 @@ struct CaptureView: View {
         .modifier(Shake(animatableData: CGFloat(viewModel.shakeCount)))
         .animation(.default, value: viewModel.shakeCount)
         .onExitCommand { onDismiss() }
-        .onChange(of: viewModel.presentationCount) {
+        .onChange(of: viewModel.focusRequestCount) {
             focused = true
         }
         .onAppear { focused = true }

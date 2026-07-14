@@ -15,8 +15,14 @@ public final class CaptureViewModel {
     public var text = ""
     public private(set) var phase: Phase = .idle
     public private(set) var shakeCount = 0
-    /// Changes every time the panel is shown; the view observes it to refocus the field.
+    /// Bumped every time the panel is shown (via reset). Used to fence stale
+    /// save results against a fresh presentation, so a save that resolves after
+    /// the panel was reopened can't clobber the new session.
     public private(set) var presentationCount = 0
+    /// Bumped whenever the field should re-grab first-responder focus without
+    /// otherwise disturbing state — on show (via reset) and after a Space swipe
+    /// drops the panel's key status. The view observes it to re-assert focus.
+    public private(set) var focusRequestCount = 0
     /// The configured destination lists; empty when the toggle is unconfigured.
     public private(set) var destinations: [ReminderList] = []
     public private(set) var selectedDestinationIndex = 0
@@ -89,5 +95,13 @@ public final class CaptureViewModel {
         phase = .idle
         text = ""
         presentationCount += 1
+        focusRequestCount += 1
+    }
+
+    /// Asks the view to re-grab first-responder focus, leaving text and phase
+    /// alone. Used when a Space swipe drops the panel's key status but the
+    /// panel stays up (and the user's half-typed text must survive).
+    public func requestFocus() {
+        focusRequestCount += 1
     }
 }
